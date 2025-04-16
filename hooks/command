@@ -210,7 +210,7 @@ elif [[ -n "$load_balancer_name" ]] && [[ $(echo "$lb_config" | jq -r '.loadBala
 fi
 
 update_time=$(date +%s)
-echo "--- :ecs: Updating service for ${service_name} at ${update_time}"
+echo "--- :ecs: Updating service for ${service_name}"
 aws ecs update-service \
   ${aws_default_args[@]+"${aws_default_args[@]}"} \
   --cluster "${cluster}" \
@@ -226,17 +226,17 @@ aws ecs wait services-stable \
   --services "${service_name}" || deploy_exitcode=$?
 
 ## Get events since the time when we began the update, in ascending order
-echo "aws_default_args=${aws_default_args[@]}"
 service_events=$(aws ecs describe-services \
   ${aws_default_args[@]+"${aws_default_args[@]}"} \
   --cluster "${cluster}" \
   --service "${service_name}" \
-  --query "services[0].events[]" |
+  --query "services[].events[]" |
   jq "[.[] | select(.createdAt > ${update_time})] | sort_by(.createdAt)" |
-  jq '.[] | "\(.createdAt) \(.id) \(.message)"')
+  jq -r '.[] | "\(.createdAt) \(.id) \(.message)"')
 
 if [[ $deploy_exitcode -eq 0 ]]; then
   echo "--- :ecs: Service is up 🚀"
+  echo "$update_time"
   echo "$service_events"
 else
   echo "+++ :ecs: Service failed to deploy ❌"
