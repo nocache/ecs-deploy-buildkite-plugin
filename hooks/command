@@ -209,7 +209,7 @@ elif [[ -n "$load_balancer_name" ]] && [[ $(echo "$lb_config" | jq -r '.loadBala
   exit 1
 fi
 
-update_time=$(date +%s)
+update_time=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 echo "--- :ecs: Updating service for ${service_name}"
 aws ecs update-service \
   ${aws_default_args[@]+"${aws_default_args[@]}"} \
