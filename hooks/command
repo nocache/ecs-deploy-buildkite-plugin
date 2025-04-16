@@ -232,7 +232,7 @@ service_events=$(aws ecs describe-services \
   --service "${service_name}" \
   --query "services[].events[]" |
   jq "[.[] | select(.createdAt > ${update_time})] | sort_by(.createdAt)" |
-  jq -r '.[] | "\(.createdAt) \(.id) \(.message)"')
+  jq -r '.[] | "\(.createdAt)\t\(.id)\t\(.message)"')
 
 if [[ $deploy_exitcode -eq 0 ]]; then
   echo "--- :ecs: Service is up 🚀"
