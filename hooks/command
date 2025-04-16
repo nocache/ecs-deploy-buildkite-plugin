@@ -231,7 +231,7 @@ service_events=$(aws ecs describe-services \
   --cluster "${cluster}" \
   --service "${service_name}" \
   --query "services[].events[]" |
-  jq "[.[] | select(.createdAt > ${update_time})] | sort_by(.createdAt)" |
+  jq "[.[] | select(.createdAt > '${update_time}')] | sort_by(.createdAt)" |
   jq -r '.[] | "\(.createdAt)\t\(.id)\t\(.message)"')
 
 if [[ $deploy_exitcode -eq 0 ]]; then
