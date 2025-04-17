@@ -209,7 +209,7 @@ elif [[ -n "$load_balancer_name" ]] && [[ $(echo "$lb_config" | jq -r '.loadBala
   exit 1
 fi
 
-update_time=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+update_time=$(date -u +%Y-%m-%dT%H:%M:%S)
 echo "--- :ecs: Updating service for ${service_name}"
 aws ecs update-service \
   ${aws_default_args[@]+"${aws_default_args[@]}"} \
@@ -231,7 +231,7 @@ service_events=$(aws ecs describe-services \
   --cluster "${cluster}" \
   --service "${service_name}" \
   --query "services[].events[]" |
-  jq "[.[] | select(.createdAt > '${update_time}')] | sort_by(.createdAt)" |
+  jq "[.[] | select(.createdAt > \"${update_time}\")] | sort_by(.createdAt)" |
   jq -r '.[] | "\(.createdAt)\t\(.id)\t\(.message)"')
 
 if [[ $deploy_exitcode -eq 0 ]]; then
