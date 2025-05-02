@@ -16,7 +16,6 @@ setup() {
 
   stub aws \
     "ecs describe-task-definition --task-definition hello-world --query taskDefinition : cat examples/described-task.json" \
-    "ecs register-task-definition --family hello-world --container-definitions \* : echo '{\"taskDefinition\":{\"revision\":1}}'" \
     "ecs update-service --cluster my-cluster --service my-service --task-definition hello-world:1 : echo ok" \
     "ecs wait services-stable --cluster my-cluster --services my-service : echo ok" \
     "ecs describe-services --cluster my-cluster --services my-service --query \* --output text : echo ok"
@@ -36,7 +35,6 @@ setup() {
 
   stub aws \
     "ecs describe-task-definition --task-definition hello-world --query taskDefinition : cat examples/described-task-multiple.json" \
-    "ecs register-task-definition --family hello-world --container-definitions \* : echo '{\"taskDefinition\":{\"revision\":1}}'" \
     "ecs update-service --cluster my-cluster --service my-service --task-definition hello-world:1 : echo ok" \
     "ecs wait services-stable --cluster my-cluster --services my-service : echo ok" \
     "ecs describe-services --cluster my-cluster --services my-service --query \* --output text : echo ok"
@@ -50,6 +48,7 @@ setup() {
 }
 
 @test "Add env vars on multiple images" {
+  export BUILDKITE_PLUGIN_ECS_DEPLOY_CONTAINER_DEFINITIONS=examples/multiple-images.json
   unset BUILDKITE_PLUGIN_ECS_DEPLOY_IMAGE
   export BUILDKITE_PLUGIN_ECS_DEPLOY_IMAGE_0=hello-world:llamas
   export BUILDKITE_PLUGIN_ECS_DEPLOY_IMAGE_1=hello-world:alpacas
@@ -83,6 +82,7 @@ setup() {
 }
 
 @test "Run a deploy with task role" {
+  export BUILDKITE_PLUGIN_ECS_DEPLOY_CONTAINER_DEFINITIONS=examples/hello-world.json
   export BUILDKITE_PLUGIN_ECS_DEPLOY_TASK_ROLE_ARN=arn:aws:iam::012345678910:role/world
 
   stub aws \
@@ -101,6 +101,7 @@ setup() {
 }
 
 @test "Run a deploy with execution role" {
+  export BUILDKITE_PLUGIN_ECS_DEPLOY_CONTAINER_DEFINITIONS=examples/hello-world.json
   export BUILDKITE_PLUGIN_ECS_DEPLOY_EXECUTION_ROLE=arn:aws:iam::012345678910:role/world
 
   stub aws \
@@ -119,6 +120,7 @@ setup() {
 }
 
 @test "Run a deploy when the container definition is incorrect" {
+  export BUILDKITE_PLUGIN_ECS_DEPLOY_CONTAINER_DEFINITIONS=examples/described-task.json # not correct container definitions format
 
   stub aws \
     "ecs describe-task-definition --task-definition hello-world --query taskDefinition : echo '{}'"
@@ -132,6 +134,8 @@ setup() {
 }
 
 @test "Fail with missing container definition and aws failure" {
+  export BUILDKITE_PLUGIN_ECS_DEPLOY_CONTAINER_DEFINITIONS=something.json # non-existent file
+
   stub aws 'exit 1' # whatever we receive, fail
 
   run "$PWD/hooks/command"
