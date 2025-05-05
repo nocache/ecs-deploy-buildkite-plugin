@@ -43,7 +43,7 @@ setup() {
   stub aws \
     "ecs describe-task-definition --task-definition hello-world --query 'taskDefinition' : echo '{}'" \
     "ecs register-task-definition --family hello-world --container-definitions \* : echo '{\"taskDefinition\":{\"revision\":1}}'" \
-    "ecs update-service --cluster my-cluster --service my-service --task-definition hello-world:1 : echo ok" \
+    "ecs update-service --force-new-deployment --cluster my-cluster --service my-service --task-definition hello-world:1 : echo ok" \
     "ecs wait services-stable --cluster my-cluster --services my-service : echo ok" \
     "ecs describe-services --cluster my-cluster --services my-service --query \* --output text : echo ok"
 
