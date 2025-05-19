@@ -50,6 +50,7 @@ trap 'rm "${task_file}"' EXIT
 
 if ! aws ecs describe-task-definition "${aws_default_args[@]+"${aws_default_args[@]}"}" --task-definition "${task_family}" --query 'taskDefinition' >"${task_file}"; then
   echo "Could not obtain existing task definition"
+  exit 1
 fi
 
 if [ -n "${BUILDKITE_PLUGIN_ECS_DEPLOY_CONTAINER_DEFINITIONS:-}" ]; then
