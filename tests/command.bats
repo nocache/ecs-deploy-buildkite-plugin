@@ -168,7 +168,8 @@ setup() {
   run "$PWD/hooks/command"
 
   assert_failure
-  assert_output --partial "Could not obtain existing task definition"
+  assert_line --partial "Could not obtain existing task definition"
+  assert_line --partial "An error occurred"
 
   unstub aws
 }

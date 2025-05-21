@@ -14,18 +14,23 @@ service_name=${BUILDKITE_PLUGIN_ECS_DEPLOY_SERVICE?Missing service name}
 # disable AWS CLI V2 client-side pager as this is not executed in an interactive mode
 export AWS_PAGER=""
 
+echo "--- :electric_plug: plugin configuration:"
+
 if ! plugin_read_list_into_result "IMAGE"; then
+  echo "+++ ^^^"
   echo ":boom: Missing image to use"
   exit 1
 fi
 images=("${result[@]}")
 
 if [ -n "${BUILDKITE_PLUGIN_ECS_DEPLOY_TASK_DEFINITION:-""}" ]; then
+  echo "+++ ^^^"
   echo ":boom: The task-definition parameter has been deprecated"
   exit 1
 fi
 
 if [ -n "${BUILDKITE_PLUGIN_ECS_DEPLOY_SERVICE_DEFINITION:-""}" ]; then
+  echo "+++ ^^^"
   echo ":boom: The service-definition parameter has been deprecated"
   echo "Create the service outside of this plugin first (using CloudFormation or Terraform)"
   exit 1
@@ -48,9 +53,10 @@ fi
 task_file=$(mktemp)
 trap 'rm "${task_file}"' EXIT
 
-if ! aws ecs describe-task-definition "${aws_default_args[@]+"${aws_default_args[@]}"}" --task-definition "${task_family}" --query 'taskDefinition' >"${task_file}"; then
-  echo "Could not obtain existing task definition"
-  exit 1
+if ! aws ecs describe-task-definition "${aws_default_args[@]+"${aws_default_args[@]}"}" --task-definition "${task_family}" --query 'taskDefinition' 1>"${task_file}" 2>&1; then
+  echo "+++ ^^^"
+  echo ":boom: Could not obtain existing task definition"
+  exit 2
 fi
 
 if [ -n "${BUILDKITE_PLUGIN_ECS_DEPLOY_CONTAINER_DEFINITIONS:-}" ]; then
@@ -62,7 +68,8 @@ else
 fi
 
 if [ "$(jq -r '. | type' "${container_definitions}")" != "array" ]; then
-  echo 'Invalid container definition (should be in the format of [{"image": "..."}] )'
+  echo "+++ ^^^"
+  echo ':boom: Invalid container definition (should be in the format of [{"image": "..."}] )'
   exit 1
 fi
 
