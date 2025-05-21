@@ -159,3 +159,16 @@ setup() {
   unstub aws
   unstub date
 }
+
+@test "If the aws call fails, exit" {
+  throttling_exception_msg="An error occurred (ThrottlingException) when calling the DescribeTaskDefinition operation (reached max retries: 2): Rate exceeded"
+  stub aws \
+    "ecs describe-task-definition \* \* \* \* : echo \"$throttling_exception_msg\" >&2; exit 255" # echo to sdterr and exit with error
+
+  run "$PWD/hooks/command"
+
+  assert_failure
+  assert_output --partial "Could not obtain existing task definition"
+
+  unstub aws
+}
