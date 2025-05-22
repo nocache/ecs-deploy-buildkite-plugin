@@ -53,10 +53,15 @@ fi
 task_file=$(mktemp)
 trap 'rm "${task_file}"' EXIT
 
-if ! aws ecs describe-task-definition "${aws_default_args[@]+"${aws_default_args[@]}"}" --task-definition "${task_family}" --query 'taskDefinition' 1>"${task_file}" 2>&1; then
+desc_task_exitcode=0
+aws ecs describe-task-definition "${aws_default_args[@]+"${aws_default_args[@]}"}" \
+  --task-definition "${task_family}" --query 'taskDefinition' 1>"${task_file}" 2>&1 || desc_task_exitcode=$?
+if [[ $desc_task_exitcode -ne 0 ]]; then
   echo "+++ ^^^"
   echo ":boom: Could not obtain existing task definition"
-  exit 2
+  cat "${task_file}"
+  echo "exiting with: $desc_task_exitcode"
+  exit $desc_task_exitcode
 fi
 
 if [ -n "${BUILDKITE_PLUGIN_ECS_DEPLOY_CONTAINER_DEFINITIONS:-}" ]; then

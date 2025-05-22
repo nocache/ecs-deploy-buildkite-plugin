@@ -170,6 +170,7 @@ setup() {
   assert_failure
   assert_line --partial "Could not obtain existing task definition"
   assert_line --partial "An error occurred"
+  assert_line "exiting with: 255"
 
   unstub aws
 }
